@@ -76,12 +76,14 @@ if (NOT BUILD_FRAMEWORK)
     add_library(vorbisenc ${VORBISENC_SOURCES})
     add_library(vorbisfile ${VORBISFILE_SOURCES})
 
+if(VORBIS_USE_VERSION)
     get_version_info(VORBIS_VERSION_INFO "V_LIB_CURRENT" "V_LIB_AGE" "V_LIB_REVISION")
     set_target_properties(vorbis PROPERTIES SOVERSION ${VORBIS_VERSION_INFO})
     get_version_info(VORBISENC_VERSION_INFO "VE_LIB_CURRENT" "VE_LIB_AGE" "VE_LIB_REVISION")
     set_target_properties(vorbisenc PROPERTIES SOVERSION ${VORBISENC_VERSION_INFO})
     get_version_info(VORBISFILE_VERSION_INFO "VF_LIB_CURRENT" "VF_LIB_AGE" "VF_LIB_REVISION")
     set_target_properties(vorbisfile PROPERTIES SOVERSION ${VORBISFILE_VERSION_INFO})
+endif()
 
     target_link_libraries(vorbis ${OGG_LIBRARIES})
     target_link_libraries(vorbisenc ${OGG_LIBRARIES} vorbis)
@@ -94,6 +96,7 @@ if (NOT BUILD_FRAMEWORK)
     install(TARGETS vorbisfile RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR})
 else()
     add_library(vorbis ${VORBIS_PUBLIC_HEADERS} ${VORBIS_HEADERS} ${VORBIS_SOURCES} ${VORBISFILE_SOURCES} ${VORBISENC_SOURCES})
+if(VORBIS_USE_VERSION)
     set_target_properties(vorbis PROPERTIES
         FRAMEWORK TRUE
         FRAMEWORK_VERSION ${PROJECT_VERSION}
@@ -104,5 +107,31 @@ else()
         PUBLIC_HEADER "${VORBIS_PUBLIC_HEADERS}"
         OUTPUT_NAME Vorbis
     )
+else()
+    set_target_properties(vorbis PROPERTIES
+        FRAMEWORK TRUE
+        MACOSX_FRAMEWORK_IDENTIFIER org.xiph.vorbis
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${PROJECT_VERSION}
+        MACOSX_FRAMEWORK_BUNDLE_VERSION ${PROJECT_VERSION}
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        PUBLIC_HEADER "${VORBIS_PUBLIC_HEADERS}"
+        OUTPUT_NAME Vorbis
+    )
+endif()
     target_link_libraries(vorbis ${OGG_LIBRARIES})
 endif()
+
+
+# Blurrr: Sets the deployment target and other useful build options
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/" ${CMAKE_MODULE_PATH})
+IF(APPLE)
+	INCLUDE(XcodeDefaults)
+	IF(BUILD_FRAMEWORK)
+		BLURRR_CONFIGURE_XCODE_DEFAULTS(vorbis)
+	ELSE()
+		BLURRR_CONFIGURE_XCODE_DEFAULTS(vorbis)
+		BLURRR_CONFIGURE_XCODE_DEFAULTS(vorbisenc)
+		BLURRR_CONFIGURE_XCODE_DEFAULTS(vorbisfile)
+	ENDIF()
+ENDIF()
+

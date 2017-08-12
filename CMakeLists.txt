@@ -11,6 +11,17 @@ if(APPLE)
     option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
 endif()
 
+
+# Blurrr disable version by default
+option(VORBIS_OPTION_USE_VERSION "Use soname" OFF)
+if(ANDROID)
+	set(VORBIS_USE_VERSION OFF)
+else()
+	set(VORBIS_USE_VERSION ${VORBIS_OPTION_USE_VERSION})
+endif()
+
+
+
 if(BUILD_FRAMEWORK)
 	set(BUILD_SHARED_LIBS TRUE)
 endif()
@@ -59,8 +70,21 @@ if(NOT OGG_ROOT)
     find_path(OGG_INCLUDE_DIRS NAMES ogg/ogg.h HINTS ${PC_OGG_INCLUDE_DIRS} PATH_SUFFIXES ogg)
     find_library(OGG_LIBRARIES NAMES ogg HINTS ${PC_OGG_LIBRARY_DIRS})
 else()
-    find_path(OGG_INCLUDE_DIRS NAMES ogg/ogg.h HINTS ${OGG_ROOT}/include PATH_SUFFIXES ogg)
-    find_library(OGG_LIBRARIES NAMES ogg HINTS ${OGG_ROOT}/lib ${OGG_ROOT}/lib64)
+	# OGG_ROOT should be an absolute path
+	find_path(OGG_INCLUDE_DIRS 
+		NAMES ogg/ogg.h Ogg/ogg.h 
+		PATHS ${OGG_ROOT}/include 
+		${OGG_ROOT} 
+		${OGG_ROOT}/ogg/include 
+		PATH_SUFFIXES ogg
+	)
+
+	find_library(OGG_LIBRARIES 
+		NAMES ogg Ogg 
+		PATHS ${OGG_ROOT}/lib ${OGG_ROOT}/lib64 
+		${OGG_ROOT}
+		${OGG_ROOT}/ogg/libs/${ANDROID_NDK_ABI_NAME}	
+	)
 endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OGG DEFAULT_MSG OGG_INCLUDE_DIRS OGG_LIBRARIES)
