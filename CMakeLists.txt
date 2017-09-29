@@ -89,6 +89,18 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OGG DEFAULT_MSG OGG_INCLUDE_DIRS OGG_LIBRARIES)
 
+# RPATH stuff. This MUST be set before any targets that use it are declared.
+IF("${CMAKE_SYSTEM}" MATCHES "Linux" AND NOT ANDROID)
+	# RPATH $ORIGIN is only for Linux and Solaris
+	# FIXME: match for Solaris too
+#	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "rpaths separated by semicolons.")
+
+	# use, i.e. don't skip the full RPATH for the build tree
+	SET(CMAKE_SKIP_BUILD_RPATH TRUE)
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) 
+	SET(CMAKE_INSTALL_RPATH "\$ORIGIN")
+ENDIF()
+
 add_subdirectory(lib)
 
 configure_pkg_config_file(vorbis.pc.in)
